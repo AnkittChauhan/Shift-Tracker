@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth , useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 
 
@@ -70,6 +70,46 @@ const ClockInOut = () => {
 
   const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
 
+
+
+
+
+  const [seconds, setSeconds] = useState(0);
+
+  // useEffect to handle the timer logic
+  useEffect(() => {
+    let interval;
+
+    if (ifClockedIn) {
+      // Reset the timer to 0 before starting
+      setSeconds(0);
+
+      // Start the timer
+      interval = setInterval(() => {
+        setSeconds((prevSeconds) => prevSeconds + 1);
+      }, 1000);
+    }
+
+    // Cleanup function to clear the interval when the component unmounts or ifClockedIn changes
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [ifClockedIn]); // Add ifClockedIn as a dependency
+
+  // Format the time (HH:MM:SS)
+  const formatTime = (timeInSeconds) => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+
+
+
+
   return (
     <div className="p-4">
 
@@ -79,34 +119,37 @@ const ClockInOut = () => {
           <h1 className="flex my-2 gap-2 items-center justify-center ">
             Status : {
               isActive ? (
-                <h1 className="flex items-center justify-center text-green-500 font-medium">
+                <div className="flex items-center justify-center text-green-500 font-medium">
                   Active
-                </h1>
+                </div>
               ) : (
-                <h1 className="flex items-center justify-center text-red-500 font-medium">
+                <div className="flex items-center justify-center text-red-500 font-medium">
                   InActive
-                </h1>
+                </div>
               )
             }
           </h1>
+
+
+          {<div className="flex flex-col items-center justify-center p-4">
+            <h1 className="text-2xl font-bold">Timer</h1>
+            <div className="text-2xl font-mono">{formatTime(seconds)}</div>
+          </div>}
+
+
+
           <div className="flex items-center justify-center">
             <img
               className="h-20 rounded-full"
               src={imageUrl} alt='/' />
           </div>
-          <h1 className="flex items-center justify-center text-lg font-bold">
-            Hi {user.firstName}
-          </h1>
+          <div className="flex items-center justify-center text-lg font-bold">
+            Hi {
+              isSignedIn ? (user.firstName) : ('User')
+            }
+          </div>
 
 
-          {/* <SignedOut>
-            <button
-              className="bg-blue-500 my-2 flex items-center justify-center mx-auto hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300"
-            >
-              {<SignInButton />}
-            </button>
-
-          </SignedOut> */}
 
           {
             ifClockedIn ? (
@@ -142,7 +185,6 @@ const ClockInOut = () => {
                 />
               </>
             )
-
           }
           {status && <p className="mt-4 text-gray-700">{status}</p>}
         </div>
@@ -151,5 +193,14 @@ const ClockInOut = () => {
     </div>
   );
 };
+
+const formatTime = (timeInSeconds) => {
+  const hours = Math.floor(timeInSeconds / 3600);
+  const minutes = Math.floor((timeInSeconds % 3600) / 60);
+  const seconds = timeInSeconds % 60;
+
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
 
 export default ClockInOut;
