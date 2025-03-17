@@ -10,7 +10,7 @@ const Navbar = () => {
         </Link>
         <div>
           <Link to="/dashboard" className="mx-2 hover:underline">
-            Dashboard
+            Manager Panel
           </Link>
         </div>
       </div>

@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useAuth } from "@clerk/clerk-react"; // Import Clerk's useAuth hook
+import { useAuth , useUser } from "@clerk/clerk-react";
+
+
 
 const ClockInOut = () => {
   const [status, setStatus] = useState("");
   const [notes, setNotes] = useState("");
   const { getToken } = useAuth(); // Use Clerk's getToken to retrieve the JWT
+  const { isSignedIn, user } = useUser();
+  const [ifClockedIn, useIfClockedIn] = useState(false);
+  const [isActive, useIsActive] = useState(false);
+
+
 
   const handleClockIn = async () => {
     try {
@@ -25,7 +32,8 @@ const ClockInOut = () => {
           },
         }
       );
-
+      useIfClockedIn(true);
+      useIsActive(true)
       // Update status
       setStatus(`Clocked in at ${new Date(data.shift.clockInTime).toLocaleTimeString()}`);
     } catch (err) {
@@ -51,7 +59,8 @@ const ClockInOut = () => {
           },
         }
       );
-
+      useIfClockedIn(false);
+      useIsActive(false)
       // Update status
       setStatus(`Clocked out at ${new Date(data.shift.clockOutTime).toLocaleTimeString()}`);
     } catch (err) {
@@ -59,30 +68,86 @@ const ClockInOut = () => {
     }
   };
 
+  const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
+
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Clock In/Out</h1>
-      <textarea
-        className="w-full p-2 border rounded mb-4"
-        placeholder="Optional notes..."
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-      />
-      <div className="flex gap-4">
-        <button
-          onClick={handleClockIn}
-          className="bg-green-500 text-white p-2 rounded hover:bg-green-600"
-        >
-          Clock In
-        </button>
-        <button
-          onClick={handleClockOut}
-          className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-        >
-          Clock Out
-        </button>
+
+      <div className="flex items-center justify-center h-screen w-full ">
+
+        <div className="bg-gray-50 p-8 rounded-lg shadow-md">
+          <h1 className="flex my-2 gap-2 items-center justify-center ">
+            Status : {
+              isActive ? (
+                <h1 className="flex items-center justify-center text-green-500 font-medium">
+                  Active
+                </h1>
+              ) : (
+                <h1 className="flex items-center justify-center text-red-500 font-medium">
+                  InActive
+                </h1>
+              )
+            }
+          </h1>
+          <div className="flex items-center justify-center">
+            <img
+              className="h-20 rounded-full"
+              src={imageUrl} alt='/' />
+          </div>
+          <h1 className="flex items-center justify-center text-lg font-bold">
+            Hi {user.firstName}
+          </h1>
+
+
+          {/* <SignedOut>
+            <button
+              className="bg-blue-500 my-2 flex items-center justify-center mx-auto hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300"
+            >
+              {<SignInButton />}
+            </button>
+
+          </SignedOut> */}
+
+          {
+            ifClockedIn ? (
+              <>
+
+                <button
+                  onClick={handleClockOut}
+                  className="bg-red-500 my-2 flex items-center justify-center mx-auto hover:bg-red-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300"
+                >
+                  Clock Out
+                </button>
+
+                <textarea
+                  className="w-full p-2 border rounded mb-4"
+                  placeholder="Optional notes..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleClockIn}
+                  className="bg-green-500 my-2 flex items-center justify-center mx-auto hover:bg-green-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300"
+                >
+                  Clock In
+                </button>
+                <textarea
+                  className="w-full p-2 border rounded mb-4"
+                  placeholder="Optional notes..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </>
+            )
+
+          }
+          {status && <p className="mt-4 text-gray-700">{status}</p>}
+        </div>
       </div>
-      {status && <p className="mt-4 text-gray-700">{status}</p>}
+
     </div>
   );
 };
