@@ -7,12 +7,6 @@ const AuthPage = () => {
 
     const { isSignedIn, user } = useUser();
 
-    // const handleLogin = () => {
-
-    //     loginWithRedirect()
-    //     console.log(user);
-
-    // }
 
     return (
         <div className="flex items-center justify-center h-screen w-full ">

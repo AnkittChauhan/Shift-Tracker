@@ -113,7 +113,7 @@ const ClockInOut = () => {
   return (
     <div className="p-4">
 
-      <div className="flex items-center justify-center h-screen w-full ">
+      <div className="flex items-center justify-center h-full w-full ">
 
         <div className="bg-gray-50 p-8 rounded-lg shadow-md">
           <h1 className="flex my-2 gap-2 items-center justify-center ">
@@ -144,7 +144,7 @@ const ClockInOut = () => {
               src={imageUrl} alt='/' />
           </div>
           <div className="flex items-center justify-center text-lg font-bold">
-            Hi {
+            {
               isSignedIn ? (user.firstName) : ('User')
             }
           </div>
