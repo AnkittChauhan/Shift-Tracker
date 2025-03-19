@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth, useUser } from "@clerk/clerk-react";
+import { Toaster, toast } from 'sonner';
+
 
 
 
@@ -34,8 +36,11 @@ const ClockInOut = () => {
       );
       useIfClockedIn(true);
       useIsActive(true)
+      toast.success(`You ClockedIn at ${ new Date(data.shift.clockInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`, {
+              autoClose: 500,
+            })
       // Update status
-      setStatus(`Clocked in at ${new Date(data.shift.clockInTime).toLocaleTimeString()}`);
+      setStatus(`Clocked in at ${new Date(data.shift.clockInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`);
     } catch (err) {
       setStatus(`Error: ${err.response?.data?.error || "Failed to clock in"}`);
     }
@@ -61,8 +66,11 @@ const ClockInOut = () => {
       );
       useIfClockedIn(false);
       useIsActive(false)
+      toast.warning(`You ClockedIn at ${ new Date(data.shift.clockInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`, {
+        autoClose: 500,
+      })
       // Update status
-      setStatus(`Clocked out at ${new Date(data.shift.clockOutTime).toLocaleTimeString()}`);
+      setStatus(`Clocked out at ${ new Date(data.shift.clockInTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`);
     } catch (err) {
       setStatus(`Error: ${err.response?.data?.error || "Failed to clock out"}`);
     }
@@ -187,6 +195,7 @@ const ClockInOut = () => {
             )
           }
           {status && <p className="mt-4 text-gray-700">{status}</p>}
+          <Toaster position="top-center" expand={false} richColors />
         </div>
       </div>
 

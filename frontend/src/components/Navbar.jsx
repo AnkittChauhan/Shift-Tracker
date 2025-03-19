@@ -1,16 +1,28 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link , useNavigate } from "react-router-dom";
 import { useState , useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
+import { Toaster, toast } from 'sonner';
+
 
 
 const Navbar = () => {
 
+
+  // Handling Admin Box pop-up appear 
+
   const [isOpen, setIsOpen] = useState(false);
+  const [adminMail, setAdminMail] = useState(' ');
+  const [adminPass, setAdminPass] = useState(' ');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (location.pathname === "/dashboard") {  
-      setIsOpen(true);
+    if (location.pathname === "/ManagerDashboard") {  
+      const storedValue = localStorage.getItem("isAdminLoggedIn");
+      if (storedValue !== "true") {
+        setIsOpen(true);
+      }
     }
   }, [location.pathname]);
 
@@ -19,18 +31,34 @@ const Navbar = () => {
     navigate('/')
   }
 
+  const REGadminEmail = import.meta.env.VITE_ADMIN_MAIL;
+  const REGadminPassword = import.meta.env.VITE_ADMIN_PASS
+
   const handleAdminSubmit = () => {
-    if (adminMail === REGadminEmail && adminPass === REGadminPassword) {
+    if ( adminMail === REGadminEmail && adminPass === REGadminPassword ) {
       setIsOpen(false)
       localStorage.setItem('isAdminLoggedIn', 'true');
-      // toast.success('Welcome Admin', {
-      //   autoClose: 500,
-      // })
+      toast.success('Welcome Admin', {
+        autoClose: 500,
+      })
     }
-    else {
+    else{
       toast.error('Wrong ID/PASS', {
         autoClose: 500,
       })
+    }
+  }
+
+  const handleManagerClick = () => {
+    navigate('/ManagerDashboard')
+
+    const storedVal = localStorage.getItem('isAdminLoggedIn');
+    
+    if( storedVal === 'true' ){
+      setIsOpen(false)
+    }
+    else{
+      setIsOpen(true);
     }
   }
 
@@ -38,15 +66,17 @@ const Navbar = () => {
     <nav className="bg-blue-500 p-4">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex gap-10 items-end">
-          <Link to="/">
+          <Link to="/" className="hover:underline">
             Authentication🔒
           </Link>
           <Link to="/user" className="hover:underline">
             User👤
           </Link>
-          <Link to="/dashboard" className="hover:underline">
+          <div
+          onClick={ handleManagerClick }
+          className="cursor-pointer hover:underline">
             Manager💼
-          </Link>
+          </div>
         </div>
 
       {isOpen && (
@@ -93,7 +123,7 @@ const Navbar = () => {
               >
                 Submit
               </button>
-              {/* <Toaster position="top-center" expand={false} richColors /> */}
+              <Toaster position="top-center" expand={false} richColors />
             </div>
           </div>
         </div>

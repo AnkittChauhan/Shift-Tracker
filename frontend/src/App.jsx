@@ -13,7 +13,8 @@ function App() {
         <Routes>
         <Route path="/" element={ < AuthPage /> } />
           <Route path="/User" element={<ClockInOut />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/ManagerDashboard" element={<Dashboard />} />
+          
         </Routes>
       </div>
     </Router>
