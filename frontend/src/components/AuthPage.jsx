@@ -26,7 +26,7 @@ const AuthPage = () => {
                     <button
                     className="bg-blue-500 my-2 flex items-center justify-center mx-auto hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300"
                 >
-                    Shift Page
+                    User Page
                 </button>
                 )
                }
