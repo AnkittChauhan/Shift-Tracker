@@ -12,7 +12,11 @@ const shiftSchema = new mongoose.Schema({
     lat: { type: Number },
     lng: { type: Number },
   },
+  name: { type: String },
+  UserImg: { type: String },
   notes: { type: String },
+  time: { type: Number },
+  status: { type: String },
 });
 
 module.exports = mongoose.model("Shift", shiftSchema);
