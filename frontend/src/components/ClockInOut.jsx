@@ -14,6 +14,9 @@ const ClockInOut = () => {
   const [ifClockedIn, useIfClockedIn] = useState(false);
   const [isActive, useIsActive] = useState(false);
 
+  const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
+
+
 
 
   const handleClockIn = async () => {
@@ -24,9 +27,11 @@ const ClockInOut = () => {
       // Make the API request to clock in
       const { data } = await axios.post(
         "http://127.0.0.1:5000/shift/clock-in",
-        {
+        { 
+          name:user.fullName,
           clockInLocation: { lat: 40.7128, lng: -74.006 }, // Replace with actual location
           notes,
+          UserImg: imageUrl,
         },
         {
           headers: {
@@ -76,7 +81,6 @@ const ClockInOut = () => {
     }
   };
 
-  const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
 
 
 

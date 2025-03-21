@@ -80,6 +80,21 @@ const clockOut = async (req, res) => {
   }
 };
 
+
+const getStaffInfo = async ( req , res ) => {
+try{ 
+ 
+  const userShift = await Shift.find();
+  res.status(200).json({userShift})
+
+} catch ( err ){
+  console.error("Error fetching Staff :", err);
+  res.status(500).json({ error: "Failed to fetch Staff" });
+}
+
+
+}
+
 // Get shift history
 const getShiftHistory = async (req, res) => {
   try {
@@ -102,4 +117,5 @@ module.exports = {
   clockIn,
   clockOut,
   getShiftHistory,
+  getStaffInfo,
 };
