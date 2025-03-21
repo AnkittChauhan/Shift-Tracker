@@ -3,7 +3,7 @@ const Shift = require("../models/Shift");
 // Clock in
 const clockIn = async (req, res) => {
   try {
-    const { clockInLocation, notes } = req.body;
+    const { clockInLocation, notes , UserImg , name } = req.body;
     const user = req.user; // Authenticated user data from Clerk
 
     // Extract the user ID from the token payload
@@ -15,6 +15,8 @@ const clockIn = async (req, res) => {
       clockInTime: new Date(),
       clockInLocation,
       notes,
+      UserImg,
+      name
     });
 
     // Save the shift to the database
@@ -53,6 +55,17 @@ const clockOut = async (req, res) => {
     latestShift.clockOutTime = new Date();
     latestShift.clockOutLocation = clockOutLocation;
     latestShift.notes = notes;
+
+    // Calculate the time difference in milliseconds
+    const timeDifferenceMs = latestShift.clockOutTime - latestShift.clockInTime;
+
+    // Convert milliseconds to hours and minutes
+    const timeDifferenceSeconds = timeDifferenceMs / 1000;
+    const hours = Math.floor(timeDifferenceSeconds / 3600);
+    const minutes = Math.floor((timeDifferenceSeconds % 3600) / 60);
+
+    // Store the time difference in the database
+    latestShift.time = `${hours} hours and ${minutes} minutes`;
 
     // Save the updated shift
     await latestShift.save();
