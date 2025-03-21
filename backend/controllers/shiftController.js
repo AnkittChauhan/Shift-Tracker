@@ -86,7 +86,8 @@ try{
  
   const userShift = await Shift.find();
   res.status(200).json({userShift})
-
+  console.log(userShift);
+  
 } catch ( err ){
   console.error("Error fetching Staff :", err);
   res.status(500).json({ error: "Failed to fetch Staff" });

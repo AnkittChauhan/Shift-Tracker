@@ -1,5 +1,7 @@
 import React from 'react';
 import { Clock, User, Calendar } from 'lucide-react';
+import axios from 'axios';
+import { useEffect } from "react";
 
 const ManagerDashboard = () => {
   const currentDate = new Date().toLocaleDateString('en-US', {
@@ -9,11 +11,24 @@ const ManagerDashboard = () => {
     day: 'numeric'
   });
 
+
+  // Getting staff info from backend 
+
+
+// useEffect(() => {
+ 
+//   axios.get('http://127.0.0.1:5000/shift/getStaff')
+  
+// }, []);
+
+
   const staff = [
     { id: 1, name: "John Doe", clockIn: "09:00 AM", clockOut: "05:00 PM", status: "active" },
     { id: 2, name: "Jane Smith", clockIn: "08:30 AM", clockOut: "04:30 PM", status: "active" },
     { id: 3, name: "Robert Johnson", clockIn: "10:00 AM", clockOut: "--:--", status: "active" },
   ];
+
+  axios.get( )
 
   return (
     <div className="bg-gray-50 min-h-screen p-8">
