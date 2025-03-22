@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, User, Calendar } from 'lucide-react';
 import axios from 'axios';
 import { useEffect } from "react";
@@ -11,24 +11,74 @@ const ManagerDashboard = () => {
     day: 'numeric'
   });
 
+  const [staff, setStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null)
+
 
   // Getting staff info from backend 
 
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:5000/shift/getStaff');
+        console.log('Backend Response:', response.data.userShift);
+        setStaff(response.data.userShift);
+      } catch (err) {
+        console.error('Error fetching staff:', err);
+        setError(err.message || 'Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-// useEffect(() => {
- 
-//   axios.get('http://127.0.0.1:5000/shift/getStaff')
-  
-// }, []);
+    fetchStaff();
+  }, []);
 
 
-  const staff = [
-    { id: 1, name: "John Doe", clockIn: "09:00 AM", clockOut: "05:00 PM", status: "active" },
-    { id: 2, name: "Jane Smith", clockIn: "08:30 AM", clockOut: "04:30 PM", status: "active" },
-    { id: 3, name: "Robert Johnson", clockIn: "10:00 AM", clockOut: "--:--", status: "active" },
-  ];
+  // const [staff, setStaff] = useState([]);
 
-  axios.get( )
+  // useEffect(() => {
+  //   const fetchStaff = async () => {
+  //     try {
+  //       const res = await axios.get('/api/staff');
+  //       console.log(res.data); // inspect it
+  //       setStaff(res.data.staff); // update according to actual structure
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   };
+
+  //   fetchStaff();
+  // }, []);
+
+
+
+  // const staff = [
+  //   { id: 1, name: "John Doe", clockIn: "09:00 AM", clockOut: "05:00 PM", status: "active" },
+  //   { id: 2, name: "Jane Smith", clockIn: "08:30 AM", clockOut: "04:30 PM", status: "active" },
+  //   { id: 3, name: "Robert Johnson", clockIn: "10:00 AM", clockOut: "--:--", status: "active" },
+  // ];
+
+  const timeConverter = (time) => {
+
+    const isoTimestamp = time
+
+    // Step 1: Parse the ISO timestamp
+    const date = new Date(isoTimestamp);
+
+    // Step 2: Extract time components
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+
+    // Step 3: Format the time
+    const formattedTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
+
+    return formattedTime;
+
+  }
+
 
   return (
     <div className="bg-gray-50 min-h-screen p-8">
@@ -43,7 +93,8 @@ const ManagerDashboard = () => {
         </div>
         <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center">
           <Clock className="mr-2 h-5 w-5" />
-          <span className="font-medium">Staff Online: {staff.filter(s => s.status === 'active').length}</span>
+          <span className="font-medium">Staff Online: {staff.length
+            }</span>
         </div>
       </div>
 
@@ -56,7 +107,7 @@ const ManagerDashboard = () => {
           </h2>
           {/*  */}
         </div>
-        
+
         <div className="p-6">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -72,44 +123,48 @@ const ManagerDashboard = () => {
                 {staff.map((employee) => {
                   // Calculate hours (for display purposes)
                   const hours = employee.clockOut !== "--:--" ? "8.0" : "In progress";
-                  
+
                   return (
                     <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4">
                         <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-medium">
-                            {employee.name.split(' ').map(name => name[0]).join('')}
+                          <div className=" text-blue-600 flex items-center justify-center font-medium">
+                            {
+                              <img className='h-10 w-10 rounded-full' src={employee.UserImg} alt="userImg" />
+                            }
                           </div>
                           <div className="ml-3">
                             <p className="font-medium text-gray-800">{employee.name}</p>
-                            <p className="text-sm text-gray-500">Staff</p>
+                            <p className="text-xs  py-1 px-3 bg-gray-100 text-gray-500">Note: {employee.notes}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-4">
                         <span className="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm font-medium">
-                          {employee.clockIn}
+                          {timeConverter(employee.clockInTime)}
                         </span>
                       </td>
-                      <td className="px-4 py-4">
-                        {employee.clockOut === "--:--" ? (
-                          <span className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-sm font-medium">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="bg-gray-100 text-gray-800 py-1 px-3 rounded-full text-sm font-medium">
-                            {employee.clockOut}
-                          </span>
-                        )}
+                      <td className="px-4 py-4 ">
+                        <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-medium">
+                        { 
+                          employee.clockOutTime ? (
+                            timeConverter(employee.clockInTime)
+                          ):(
+                            "--:--"
+                          ) 
+                        }
+                        </span>
                       </td>
-                      <td className="px-4 py-4 text-gray-700 font-medium">{hours}</td>
+                      <td className="px-4 py-4 text-gray-700 font-medium">{ 
+                        employee.time ? ( employee.time ):( 'Active' )
+                        }</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-          
+
           <div className="flex justify-between items-center mt-6 text-sm text-gray-500">
             <p>Showing {staff.length} employees</p>
             <button className="text-blue-600 font-medium hover:text-blue-800">
@@ -121,5 +176,23 @@ const ManagerDashboard = () => {
     </div>
   );
 };
+
+
+// employee.clockOutTime === "--:--" ? (
+//   <span className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-sm font-medium">
+//     Active
+//   </span>
+// ) : (
+//   <span className="bg-gray-100 text-gray-800 py-1 px-3 rounded-full text-sm font-medium">
+//     {
+//      employee.clockOutTime ? ( 
+//       timeConverter(employee.clockOutTime)
+//      ):(
+//       employee.clockOutTime=='--:--'
+//      )
+    
+//     }
+//   </span>
+// )
 
 export default ManagerDashboard;

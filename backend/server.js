@@ -38,7 +38,7 @@ const authenticate = async (req, res, next) => {
 };
 
 // Apply Clerk middleware to protected routes
-app.use("/shift", authenticate, shiftRoutes);
+app.use("/shift", shiftRoutes);
 app.use("/location", authenticate, locationRoutes);
 
 // Public routes

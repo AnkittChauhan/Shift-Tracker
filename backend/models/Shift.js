@@ -16,7 +16,7 @@ const shiftSchema = new mongoose.Schema({
   UserImg: { type: String },
   notes: { type: String },
   time: { type: String },
-  // status: { type: String },
+ 
 });
 
 module.exports = mongoose.model("Shift", shiftSchema);

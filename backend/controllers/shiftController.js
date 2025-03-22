@@ -65,7 +65,7 @@ const clockOut = async (req, res) => {
     const minutes = Math.floor((timeDifferenceSeconds % 3600) / 60);
 
     // Store the time difference in the database
-    latestShift.time = `${hours} hours and ${minutes} minutes`;
+    latestShift.time = `${hours} h ${minutes} m`;
 
     // Save the updated shift
     await latestShift.save();
@@ -86,7 +86,6 @@ try{
  
   const userShift = await Shift.find();
   res.status(200).json({userShift})
-  console.log(userShift);
   
 } catch ( err ){
   console.error("Error fetching Staff :", err);
