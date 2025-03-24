@@ -3,6 +3,7 @@ import { Link , useNavigate } from "react-router-dom";
 import { useState , useEffect } from "react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
 import { Toaster, toast } from 'sonner';
+import { useUser } from "@clerk/clerk-react";
 
 
 
@@ -16,6 +17,7 @@ const Navbar = () => {
   const [adminPass, setAdminPass] = useState(' ');
 
   const navigate = useNavigate();
+  const { isSignedIn, user } = useUser();
 
   useEffect(() => {
     if (location.pathname === "/ManagerDashboard") {  
@@ -72,11 +74,15 @@ const Navbar = () => {
           <Link to="/user" className="hover:underline">
             User👤
           </Link>
-          <div
+         {
+           isSignedIn && (
+            <div
           onClick={ handleManagerClick }
           className="cursor-pointer hover:underline">
             Manager💼
           </div>
+          )
+         }
         </div>
 
       {isOpen && (

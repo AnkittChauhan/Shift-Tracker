@@ -7,6 +7,12 @@ const AuthPage = () => {
 
     const { isSignedIn, user } = useUser();
 
+    const removeAdmin = () => {
+
+        localStorage.setItem('isAdminLoggedIn', 'false')
+
+    } 
+
 
     return (
         <div className="flex items-center justify-center h-screen w-full ">
@@ -14,6 +20,7 @@ const AuthPage = () => {
                 <div className='items-center justify-center'>{isSignedIn ? `Hey ${user.firstName} , Go to Dashboard` : "Hey, You are not Authorized!"}</div>
                 <SignedOut>
                     <button
+                        onClick={ removeAdmin }
                         className="bg-blue-500 my-2 flex items-center justify-center mx-auto hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300"
                     >
                         {<SignInButton />}
