@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { Clock, User, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Clock, User, Calendar, MapPin, Settings } from 'lucide-react';
 import axios from 'axios';
-import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { Toaster, toast } from 'sonner';
+import { useAuth } from '@clerk/clerk-react';
 
 const ManagerDashboard = () => {
+
+  const { getToken } = useAuth();
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -13,75 +18,114 @@ const ManagerDashboard = () => {
 
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(null);
+  const [showPerimeterSettings, setShowPerimeterSettings] = useState(false);
+  const [perimeter, setPerimeter] = useState({
+    location: { lat: 51.505, lng: -0.09 }, // Default location
+    radius: 2000 // Default radius in meters
+  });
+  const [isSaving, setIsSaving] = useState(false);
 
-
-  // Getting staff info from backend 
-
+  // Get staff info and perimeter settings from backend
   useEffect(() => {
-    const fetchStaff = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/shift/getStaff');
-        console.log('Backend Response:', response.data.userShift);
-        setStaff(response.data.userShift);
+        // Fetch staff data
+        const staffResponse = await axios.get('http://127.0.0.1:5000/shift/getStaff');
+        setStaff(staffResponse.data.userShift);
+        
+        // Fetch perimeter settings if available
+        try {
+          const perimeterResponse = await axios.get('http://127.0.0.1:5000/perimeter/get');
+          if (perimeterResponse.data) {
+            setPerimeter({
+              location: {
+                lat: perimeterResponse.data.location.latitude,
+                lng: perimeterResponse.data.location.longitude
+              },
+              radius: perimeterResponse.data.radius
+            });
+          }
+        } catch (perimeterError) {
+          console.log('No perimeter settings found, using defaults');
+        }
       } catch (err) {
-        console.error('Error fetching staff:', err);
+        console.error('Error fetching data:', err);
         setError(err.message || 'Something went wrong');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStaff();
+    fetchData();
   }, []);
 
-
-  // const [staff, setStaff] = useState([]);
-
-  // useEffect(() => {
-  //   const fetchStaff = async () => {
-  //     try {
-  //       const res = await axios.get('/api/staff');
-  //       console.log(res.data); // inspect it
-  //       setStaff(res.data.staff); // update according to actual structure
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   };
-
-  //   fetchStaff();
-  // }, []);
-
-
-
-  // const staff = [
-  //   { id: 1, name: "John Doe", clockIn: "09:00 AM", clockOut: "05:00 PM", status: "active" },
-  //   { id: 2, name: "Jane Smith", clockIn: "08:30 AM", clockOut: "04:30 PM", status: "active" },
-  //   { id: 3, name: "Robert Johnson", clockIn: "10:00 AM", clockOut: "--:--", status: "active" },
-  // ];
-
   const timeConverter = (time) => {
-
-    const isoTimestamp = time
-
-    // Step 1: Parse the ISO timestamp
-    const date = new Date(isoTimestamp);
-
-    // Step 2: Extract time components
+    const date = new Date(time);
     const hours = date.getHours();
     const minutes = date.getMinutes();
-    const seconds = date.getSeconds();
+    return `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
+  };
 
-    // Step 3: Format the time
-    const formattedTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
+  const handleSavePerimeter = async () => {
+    setIsSaving(true);
+    try {
+      const token = await getToken();
+      const response = await axios.post(
+        'http://127.0.0.1:5000/perimeter/set',
+        {
+          location: {
+            latitude: perimeter.location.lat,
+            longitude: perimeter.location.lng
+          },
+          radius: perimeter.radius
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      setShowPerimeterSettings(false);
+      toast.success('Perimeter saved successfully');
+    } catch (error) {
+      console.error('Detailed error:', error.response?.data || error.message);
+      const errorMessage = error.response?.data?.error || 
+                         error.response?.data?.message || 
+                         'Failed to save perimeter';
+      toast.error(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    return formattedTime;
+  const LocationMarker = () => {
+    useMapEvents({
+      click(e) {
+        setPerimeter(prev => ({
+          ...prev,
+          location: e.latlng
+        }));
+      }
+    });
 
-  }
-
+    return perimeter.location ? (
+      <>
+        <Marker position={[perimeter.location.lat, perimeter.location.lng]} />
+        <Circle 
+          center={[perimeter.location.lat, perimeter.location.lng]} 
+          radius={perimeter.radius} 
+          color="blue"
+        />
+      </>
+    ) : null;
+  };
 
   return (
+    
     <div className="bg-gray-50 min-h-screen p-8">
+      <Toaster position="top-center" expand={false} richColors />
       {/* Header Section */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -91,12 +135,86 @@ const ManagerDashboard = () => {
             <span>{currentDate}</span>
           </div>
         </div>
-        <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center">
-          <Clock className="mr-2 h-5 w-5" />
-          <span className="font-medium">Staff Online: {staff.length
-            }</span>
+        <div className="flex items-center gap-4">
+          <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center">
+            <Clock className="mr-2 h-5 w-5" />
+            <span className="font-medium">Staff Online: {staff.length}</span>
+          </div>
+          <button 
+            onClick={() => setShowPerimeterSettings(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center hover:bg-green-700 transition-colors"
+          >
+            <MapPin className="mr-2 h-5 w-5" />
+            <span>Set Perimeter</span>
+          </button>
         </div>
       </div>
+
+      {/* Perimeter Settings Modal */}
+      {showPerimeterSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                <Settings className="mr-2 h-5 w-5" />
+                Set Clock-in Perimeter
+              </h2>
+              <button 
+                onClick={() => setShowPerimeterSettings(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Radius (meters)
+              </label>
+              <input
+                type="number"
+                value={perimeter.radius}
+                onChange={(e) => setPerimeter(prev => ({
+                  ...prev,
+                  radius: Number(e.target.value)
+                }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                min="100"
+                step="100"
+              />
+            </div>
+            
+            <div className="h-96 w-full rounded-md overflow-hidden mb-4">
+              <MapContainer
+                center={[perimeter.location.lat, perimeter.location.lng]}
+                zoom={15}
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <LocationMarker />
+              </MapContainer>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowPerimeterSettings(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSavePerimeter}
+                disabled={isSaving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+              >
+                {isSaving ? 'Saving...' : 'Save Perimeter'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -105,7 +223,6 @@ const ManagerDashboard = () => {
             <User className="mr-2 h-5 w-5" />
             Staff Clocked In
           </h2>
-          {/*  */}
         </div>
 
         <div className="p-6">
@@ -120,47 +237,34 @@ const ManagerDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {staff.map((employee) => {
-                  // Calculate hours (for display purposes)
-                  const hours = employee.clockOut !== "--:--" ? "8.0" : "In progress";
-
-                  return (
-                    <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4">
-                        <div className="flex items-center">
-                          <div className=" text-blue-600 flex items-center justify-center font-medium">
-                            {
-                              <img className='h-10 w-10 rounded-full' src={employee.UserImg} alt="userImg" />
-                            }
-                          </div>
-                          <div className="ml-3">
-                            <p className="font-medium text-gray-800">{employee.name}</p>
-                            <p className="text-xs  py-1 px-3 bg-gray-100 text-gray-500">Note: {employee.notes}</p>
-                          </div>
+                {staff.map((employee) => (
+                  <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-4">
+                      <div className="flex items-center">
+                        <div className="text-blue-600 flex items-center justify-center font-medium">
+                          <img className='h-10 w-10 rounded-full' src={employee.UserImg} alt="user" />
                         </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm font-medium">
-                          {timeConverter(employee.clockInTime)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 ">
-                        <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-medium">
-                        { 
-                          employee.clockOutTime ? (
-                            timeConverter(employee.clockInTime)
-                          ):(
-                            "--:--"
-                          ) 
-                        }
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-gray-700 font-medium">{ 
-                        employee.time ? ( employee.time ):( 'Active' )
-                        }</td>
-                    </tr>
-                  );
-                })}
+                        <div className="ml-3">
+                          <p className="font-medium text-gray-800">{employee.name}</p>
+                          <p className="text-xs py-1 px-3 bg-gray-100 text-gray-500">Note: {employee.notes}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm font-medium">
+                        {timeConverter(employee.clockInTime)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-medium">
+                        {employee.clockOutTime ? timeConverter(employee.clockOutTime) : "--:--"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-gray-700 font-medium">
+                      {employee.time ? employee.time : 'Active'}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -176,23 +280,5 @@ const ManagerDashboard = () => {
     </div>
   );
 };
-
-
-// employee.clockOutTime === "--:--" ? (
-//   <span className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-sm font-medium">
-//     Active
-//   </span>
-// ) : (
-//   <span className="bg-gray-100 text-gray-800 py-1 px-3 rounded-full text-sm font-medium">
-//     {
-//      employee.clockOutTime ? ( 
-//       timeConverter(employee.clockOutTime)
-//      ):(
-//       employee.clockOutTime=='--:--'
-//      )
-    
-//     }
-//   </span>
-// )
 
 export default ManagerDashboard;

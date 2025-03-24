@@ -3,34 +3,55 @@ const Shift = require("../models/Shift");
 // Clock in
 const clockIn = async (req, res) => {
   try {
-    const { clockInLocation, notes , UserImg , name } = req.body;
-    const user = req.user; // Authenticated user data from Clerk
+    // Validate required fields
+    if (!req.user?.sub) {
+      return res.status(400).json({ error: 'User authentication missing' });
+    }
 
-    // Extract the user ID from the token payload
-    const userId = user.sub; // Use the `sub` field as the user ID
+    if (!req.body.clockInLocation) {
+      return res.status(400).json({ 
+        error: 'Clock-in location required',
+        details: 'Must include { lat, lng }' 
+      });
+    }
 
-    // Create a new shift
-    const newShift = new Shift({
-      userId, // Use the extracted user ID
-      clockInTime: new Date(),
-      clockInLocation,
-      notes,
-      UserImg,
-      name
+    const shiftData = {
+      userId: req.user.sub, // From authenticated user
+      clockInTime: new Date(), // Set current time
+      clockInLocation: {
+        lat: parseFloat(req.body.clockInLocation.lat),
+        lng: parseFloat(req.body.clockInLocation.lng)
+      },
+      name: req.body.name,
+      notes: req.body.notes,
+      UserImg: req.body.UserImg
+    };
+
+    const shift = await Shift.create(shiftData);
+    res.status(201).json(shift);
+
+  } catch (error) {
+    console.error('Clock-in error:', {
+      error: error.message,
+      validationErrors: error.errors,
+      requestBody: req.body
     });
-
-    // Save the shift to the database
-    await newShift.save();
-
-    res.status(201).json({
-      message: "Clocked in successfully",
-      shift: newShift,
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to clock in',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
-  } catch (err) {
-    console.error("Error clocking in:", err);
-    res.status(500).json({ error: "Failed to clock in" });
   }
 };
+
+
 
 // Clock out
 const clockOut = async (req, res) => {
