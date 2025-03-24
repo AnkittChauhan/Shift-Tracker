@@ -29,7 +29,7 @@ const ClockInOut = () => {
         "http://127.0.0.1:5000/shift/clock-in",
         { 
           name:user.fullName,
-          clockInLocation: { lat: 40.7128, lng: -74.006 }, // Replace with actual location
+          clockInLocation: { lat: 40.7128, lng: -74.006 }, // location
           notes,
           UserImg: imageUrl,
         },
