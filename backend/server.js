@@ -30,15 +30,15 @@ const authenticate = async (req, res, next) => {
     const decoded = await verifyToken(token, {
       secretKey: process.env.CLERK_SECRET_KEY,
     });
-    
-    // Extract organization ID from Clerk user data
+
+    // Extract organization ID from Clerk token
     req.user = {
       userId: decoded.sub,
       organizationId: decoded.organization_id || 
-                    decoded.public_metadata?.organizationId || 
-                    'default-org'
+                    decoded.publicMetadata?.organizationId || 
+                    'default-org' // Fallback for testing
     };
-    
+
     next();
   } catch (err) {
     console.error("Token verification failed:", err);
@@ -89,14 +89,38 @@ app.post('/perimeter/set', authenticate, [
 });
 
 // Get perimeter settings
-app.get('/perimeter/get', async (req, res) => {
+// Get perimeter settings
+app.get('/perimeter/get', authenticate, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId || 'default-org';
+    const { organizationId } = req.user;
+    
+    if (!organizationId) {
+      return res.status(400).json({ 
+        error: 'Organization ID missing',
+        details: 'User is not associated with an organization' 
+      });
+    }
+
     const perimeter = await Perimeter.findOne({ organizationId });
-    res.status(200).json(perimeter || null);
+    
+    if (!perimeter) {
+      return res.status(404).json({ 
+        error: 'Perimeter not configured',
+        details: `No perimeter found for organization ${organizationId}`
+      });
+    }
+
+    res.status(200).json(perimeter);
   } catch (error) {
-    console.error('Error fetching perimeter:', error);
-    res.status(500).json({ error: 'Failed to fetch perimeter settings' });
+    console.error('Fetch perimeter error:', {
+      error: error.message,
+      user: req.user
+    });
+    
+    res.status(500).json({ 
+      error: 'Failed to fetch perimeter',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

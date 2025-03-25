@@ -4,11 +4,14 @@ import Navbar from "./components/Navbar";
 import ClockInOut from "./components/ClockInOut";
 import ManagerDashboard from "./components/ManagerDashboard";
 import AuthPage from "./components/AuthPage";
+import { TimerProvider } from "./contexts/TimerContext";
 
 function App() {
   return (
     <Router>
       <Navbar />
+      <TimerProvider>
+
       <div className="container mx-auto p-4">
         <Routes>
         <Route path="/" element={ < AuthPage /> } />
@@ -17,6 +20,8 @@ function App() {
           
         </Routes>
       </div>
+      </TimerProvider>
+
     </Router>
   );
 }

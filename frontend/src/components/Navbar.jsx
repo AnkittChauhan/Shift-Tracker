@@ -90,6 +90,8 @@ const Navbar = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-xl font-semibold">Admin ? Prove it !</h2>
             <p className="mt-2 text-gray-600">Only admin can go futher</p>
+            <p className="mt-2 text-gray-600">Hint ID :- admin@123</p>
+            <p className="mt-2 text-gray-600">Hint Pass :- 12345</p>
 
             {/* Input Boxes */}
             <div className='mt-5'>

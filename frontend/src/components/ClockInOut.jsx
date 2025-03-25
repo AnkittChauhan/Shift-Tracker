@@ -3,22 +3,26 @@ import axios from "axios";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { Toaster, toast } from 'sonner';
 import { MapPin, AlertCircle } from 'lucide-react';
+import { useTimer } from "../contexts/TimerContext";
 
 const ClockInOut = () => {
-  // Load initial state from localStorage if available
+
+
+
+  const { 
+    seconds, 
+    setSeconds,
+    isActive, 
+    setIsActive,
+    ifClockedIn,
+    setIfClockedIn
+  } = useTimer();
+
+  // Local state
   const [status, setStatus] = useState("");
   const [notes, setNotes] = useState(localStorage.getItem('clockNotes') || "");
   const { getToken } = useAuth();
   const { isSignedIn, user } = useUser();
-  const [ifClockedIn, setIfClockedIn] = useState(
-    localStorage.getItem('clockedIn') === 'true' || false
-  );
-  const [isActive, setIsActive] = useState(
-    localStorage.getItem('isActive') === 'true' || false
-  );
-  const [seconds, setSeconds] = useState(
-    parseInt(localStorage.getItem('timerSeconds')) || 0 
-  );
   const [userLocation, setUserLocation] = useState(null);
   const [isWithinPerimeter, setIsWithinPerimeter] = useState(false);
   const [locationError, setLocationError] = useState(null);
@@ -26,54 +30,14 @@ const ClockInOut = () => {
 
   const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
 
-  // Save to localStorage whenever state changes
+  // Save notes to localStorage
   useEffect(() => {
-    localStorage.setItem('clockedIn', ifClockedIn);
-    localStorage.setItem('isActive', isActive);
     localStorage.setItem('clockNotes', notes);
-    localStorage.setItem('timerSeconds', seconds);
-  }, [ifClockedIn, isActive, notes, seconds]);
+  }, [notes]);
 
   // Check user's location against perimeter
   const checkLocation = async () => {
-    setIsCheckingLocation(true);
-    setLocationError(null);
-    
-    try {
-      // Get current position
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
-      });
-      
-      const { latitude, longitude } = position.coords;
-      setUserLocation({ latitude, longitude });
-      
-      // Check with backend if within perimeter
-      const token = await getToken();
-      const response = await axios.post(
-        "http://127.0.0.1:5000/perimeter/check",
-        { latitude, longitude },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      setIsWithinPerimeter(response.data.isWithinPerimeter);
-      return response.data.isWithinPerimeter;
-      
-    } catch (err) {
-      console.error("Location error:", err);
-      setLocationError(
-        err.code === err.PERMISSION_DENIED 
-          ? "Location access denied. Please enable location services to clock in."
-          : "Could not determine your location. Please try again."
-      );
-      return false;
-    } finally {
-      setIsCheckingLocation(false);
-    }
+    // ... (keep your existing checkLocation implementation)
   };
 
   const handleClockIn = async () => {
@@ -104,10 +68,9 @@ const ClockInOut = () => {
         "http://127.0.0.1:5000/shift/clock-in",
         { 
           name: user.fullName,
-          clockInLocation, // Includes both lat and lng
+          clockInLocation,
           notes,
           UserImg: imageUrl
-          // Don't need to send userId or clockInTime - handled by backend
         },
         {
           headers: { 
@@ -117,7 +80,7 @@ const ClockInOut = () => {
         }
       );
   
-      // Update state
+      // Update state through context
       setIfClockedIn(true);
       setIsActive(true);
       setSeconds(0);
@@ -135,6 +98,79 @@ const ClockInOut = () => {
       toast.error(errorMsg);
     }
   };
+
+  const handleClockOut = async () => {
+    try {
+      const isWithin = await checkLocation();
+      if (!isWithin) {
+        toast.warning("You're clocking out from outside the perimeter");
+      }
+
+      const token = await getToken();
+      const { data } = await axios.post(
+        "http://127.0.0.1:5000/shift/clock-out",
+        {
+          clockOutLocation: userLocation,
+          notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Update state through context
+      setIfClockedIn(false);
+      setIsActive(false);
+      toast.warning(`You ClockedOut at ${ new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`, {
+        autoClose: 500,
+      });
+      setStatus(`Clocked out at ${new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`);
+    } catch (err) {
+      setStatus(`Error: ${err.response?.data?.error || "Failed to clock out"}`);
+      toast.warning("Error: Failed to clock out");
+    }
+  };
+
+  // Check with backend on component mount to verify actual state
+  useEffect(() => {
+    const verifyShiftStatus = async () => {
+      try {
+        const token = await getToken();
+        const { data } = await axios.get(
+          "http://127.0.0.1:5000/shift/status",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (data.activeShift) {
+          const clockInTime = new Date(data.activeShift.clockInTime);
+          const now = new Date();
+          const secondsElapsed = Math.floor((now - clockInTime) / 1000);
+          
+          setSeconds(secondsElapsed);
+          setIfClockedIn(true);
+          setIsActive(true);
+        }
+      } catch (err) {
+        console.error("Error verifying shift status:", err);
+      }
+    };
+
+    if (isSignedIn) verifyShiftStatus();
+  }, [isSignedIn, getToken, setSeconds, setIfClockedIn, setIsActive]);
+
+
+
+  // Saving to localStorage whenever state changes
+  useEffect(() => {
+    localStorage.setItem('clockedIn', ifClockedIn);
+    localStorage.setItem('isActive', isActive);
+    localStorage.setItem('clockNotes', notes);
+    localStorage.setItem('timerSeconds', seconds);
+  }, [ifClockedIn, isActive, notes, seconds]);
+
+  
 
   // Separate perimeter check function
 const checkPerimeter = async (location) => {
@@ -157,54 +193,7 @@ const checkPerimeter = async (location) => {
   }
 };
 
-  const handleClockOut = async () => {
-    try {
-      const isWithin = await checkLocation();
-      if (!isWithin) {
-        toast.warning("You're clocking out from outside the perimeter");
-        // Still allow clock out but with warning
-      }
-
-      const token = await getToken();
-      const { data } = await axios.post(
-        "http://127.0.0.1:5000/shift/clock-out",
-        {
-          clockOutLocation: userLocation,
-          notes,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setIfClockedIn(false);
-      setIsActive(false);
-      toast.warning(`You ClockedOut at ${ new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`, {
-        autoClose: 500,
-      });
-      setStatus(`Clocked out at ${new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`);
-    } catch (err) {
-      setStatus(`Error: ${err.response?.data?.error || "Failed to clock out"}`);
-      toast.warning("Error: Failed to clock out");
-    }
-  };
-
-  // Timer logic
-  useEffect(() => {
-    let interval;
-    if (ifClockedIn) {
-      interval = setInterval(() => {
-        setSeconds(prevSeconds => {
-          const newSeconds = prevSeconds + 1;
-          localStorage.setItem('timerSeconds', newSeconds);
-          return newSeconds;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [ifClockedIn]);
-
+ 
   // Check with backend on component mount to verify actual state
   useEffect(() => {
     const verifyShiftStatus = async () => {
@@ -212,35 +201,36 @@ const checkPerimeter = async (location) => {
         const token = await getToken();
         const { data } = await axios.get(
           "http://127.0.0.1:5000/shift/status",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         
         if (data.activeShift) {
-          setIfClockedIn(true);
-          setIsActive(true);
-          // Calculate seconds since clock in
+          // Calculate elapsed time
           const clockInTime = new Date(data.activeShift.clockInTime);
           const now = new Date();
           const secondsElapsed = Math.floor((now - clockInTime) / 1000);
+          
           setSeconds(secondsElapsed);
-          setStatus(`Clocked in at ${clockInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`);
-        } else {
-          setIfClockedIn(false);
-          setIsActive(false);
-          setSeconds(0);
+          setIfClockedIn(true);
+          setIsActive(true);
+          
+          // Start timer if not already running
+          if (!window.timerInterval) {
+            window.timerInterval = setInterval(() => {
+              setSeconds(prev => {
+                const newSeconds = prev + 1;
+                localStorage.setItem('timerSeconds', newSeconds);
+                return newSeconds;
+              });
+            }, 1000);
+          }
         }
       } catch (err) {
         console.error("Error verifying shift status:", err);
       }
     };
 
-    if (isSignedIn) {
-      verifyShiftStatus();
-    }
+    if (isSignedIn) verifyShiftStatus();
   }, [isSignedIn, getToken]);
 
   const formatTime = (timeInSeconds) => {
