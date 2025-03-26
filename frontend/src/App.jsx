@@ -12,14 +12,14 @@ function App() {
       <Navbar />
       <TimerProvider>
 
-      <div className="container mx-auto p-4">
-        <Routes>
-        <Route path="/" element={ < AuthPage /> } />
-          <Route path="/User" element={<ClockInOut />} />
-          <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
-          
-        </Routes>
-      </div>
+        <div className="container mx-auto p-4">
+          <Routes>
+            <Route path="/" element={< AuthPage />} />
+            <Route path="/User" element={<ClockInOut />} />
+            <Route path="/ManagerDashboard" element={<ManagerDashboard />} />
+
+          </Routes>
+        </div>
       </TimerProvider>
 
     </Router>

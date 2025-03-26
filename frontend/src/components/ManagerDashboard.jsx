@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import { Toaster, toast } from 'sonner';
 import { useAuth } from '@clerk/clerk-react';
+import StaffLoader from './StaffLoader';
 
 const ManagerDashboard = () => {
 
@@ -33,7 +34,7 @@ const ManagerDashboard = () => {
         // Fetch staff data
         const staffResponse = await axios.get('https://shift-tracker-plig.onrender.com/shift/getStaff');
         setStaff(staffResponse.data.userShift);
-        
+
         // Fetch perimeter settings if available
         try {
           const perimeterResponse = await axios.get('https://shift-tracker-plig.onrender.com/perimeter/get');
@@ -86,14 +87,14 @@ const ManagerDashboard = () => {
           }
         }
       );
-      
+
       setShowPerimeterSettings(false);
       toast.success('Perimeter saved successfully');
     } catch (error) {
       console.error('Detailed error:', error.response?.data || error.message);
-      const errorMessage = error.response?.data?.error || 
-                         error.response?.data?.message || 
-                         'Failed to save perimeter';
+      const errorMessage = error.response?.data?.error ||
+        error.response?.data?.message ||
+        'Failed to save perimeter';
       toast.error(errorMessage);
     } finally {
       setIsSaving(false);
@@ -113,17 +114,26 @@ const ManagerDashboard = () => {
     return perimeter.location ? (
       <>
         <Marker position={[perimeter.location.lat, perimeter.location.lng]} />
-        <Circle 
-          center={[perimeter.location.lat, perimeter.location.lng]} 
-          radius={perimeter.radius} 
+        <Circle
+          center={[perimeter.location.lat, perimeter.location.lng]}
+          radius={perimeter.radius}
           color="blue"
         />
       </>
     ) : null;
   };
 
+
+  // Loader before getting Stafff 
+
+
+
+
+
+
+
   return (
-    
+
     <div className="bg-gray-50 min-h-screen p-8">
       <Toaster position="top-center" expand={false} richColors />
       {/* Header Section */}
@@ -140,7 +150,7 @@ const ManagerDashboard = () => {
             <Clock className="mr-2 h-5 w-5" />
             <span className="font-medium">Staff Online: {staff.length}</span>
           </div>
-          <button 
+          <button
             onClick={() => setShowPerimeterSettings(true)}
             className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center hover:bg-green-700 transition-colors"
           >
@@ -159,14 +169,14 @@ const ManagerDashboard = () => {
                 <Settings className="mr-2 h-5 w-5" />
                 Set Clock-in Perimeter
               </h2>
-              <button 
+              <button
                 onClick={() => setShowPerimeterSettings(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Radius (meters)
@@ -183,7 +193,7 @@ const ManagerDashboard = () => {
                 step="100"
               />
             </div>
-            
+
             <div className="h-96 w-full rounded-md overflow-hidden mb-4">
               <MapContainer
                 center={[perimeter.location.lat, perimeter.location.lng]}
@@ -196,7 +206,7 @@ const ManagerDashboard = () => {
                 <LocationMarker />
               </MapContainer>
             </div>
-            
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowPerimeterSettings(false)}
@@ -237,34 +247,46 @@ const ManagerDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {staff.map((employee) => (
-                  <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center">
-                        <div className="text-blue-600 flex items-center justify-center font-medium">
-                          <img className='h-10 w-10 rounded-full' src={employee.UserImg} alt="user" />
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium text-gray-800">{employee.name}</p>
-                          <p className="text-xs py-1 px-3 bg-gray-100 text-gray-500">Note: {employee.notes}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm font-medium">
-                        {timeConverter(employee.clockInTime)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-medium">
-                        {employee.clockOutTime ? timeConverter(employee.clockOutTime) : "--:--"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-gray-700 font-medium">
-                      {employee.time ? employee.time : 'Active'}
-                    </td>
-                  </tr>
-                ))}
+                {
+
+                  loading ? (
+                    <tr className="hover:bg-gray-50 transition-colors">
+                      <StaffLoader />
+                    </tr>
+                  ) : (
+                    staff.map((employee) => (
+                      <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-4">
+                          <div className="flex items-center">
+                            <div className="text-blue-600 flex items-center justify-center font-medium">
+                              <img className='h-10 w-10 rounded-full' src={employee.UserImg} alt="user" />
+                            </div>
+                            <div className="ml-3">
+                              <p className="font-medium text-gray-800">{employee.name}</p>
+                              <p className="text-xs py-1 px-3 bg-gray-100 text-gray-500">Note: {employee.notes}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm font-medium">
+                            {timeConverter(employee.clockInTime)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-medium">
+                            {employee.clockOutTime ? timeConverter(employee.clockOutTime) : "--:--"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-gray-700 font-medium">
+                          {employee.time ? employee.time : 'Active'}
+                        </td>
+                      </tr>
+                    ))
+
+                  )
+
+
+                }
               </tbody>
             </table>
           </div>
