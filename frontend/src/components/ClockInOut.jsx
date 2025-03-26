@@ -23,10 +23,10 @@ const ClockInOut = () => {
   const [notes, setNotes] = useState(localStorage.getItem('clockNotes') || "");
   const { getToken } = useAuth();
   const { isSignedIn, user } = useUser();
-  const [userLocation, setUserLocation] = useState(null);
-  const [isWithinPerimeter, setIsWithinPerimeter] = useState(false);
-  const [locationError, setLocationError] = useState(null);
-  const [isCheckingLocation, setIsCheckingLocation] = useState(false);
+  // const [userLocation, setUserLocation] = useState(null);
+  // const [isWithinPerimeter, setIsWithinPerimeter] = useState(false);
+  // const [locationError, setLocationError] = useState(null);
+  // const [isCheckingLocation, setIsCheckingLocation] = useState(false);
 
   const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
 
@@ -65,7 +65,7 @@ const ClockInOut = () => {
       // 3. Submit clock-in
       const token = await getToken();
       const { data } = await axios.post(
-        "http://127.0.0.1:5000/shift/clock-in",
+        "https://shift-tracker-plig.onrender.com/shift/clock-in",
         { 
           name: user.fullName,
           clockInLocation,
@@ -108,7 +108,7 @@ const ClockInOut = () => {
 
       const token = await getToken();
       const { data } = await axios.post(
-        "http://127.0.0.1:5000/shift/clock-out",
+        "https://shift-tracker-plig.onrender.com/shift/clock-out",
         {
           clockOutLocation: userLocation,
           notes,
@@ -139,7 +139,7 @@ const ClockInOut = () => {
       try {
         const token = await getToken();
         const { data } = await axios.get(
-          "http://127.0.0.1:5000/shift/status",
+          "https://shift-tracker-plig.onrender.com/shift/status",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         
@@ -177,7 +177,7 @@ const checkPerimeter = async (location) => {
   try {
     const token = await getToken();
     const response = await axios.post(
-      "http://127.0.0.1:5000/perimeter/check",
+      "https://shift-tracker-plig.onrender.com/perimeter/check",
       {
         latitude: location.lat,
         longitude: location.lng
@@ -200,7 +200,7 @@ const checkPerimeter = async (location) => {
       try {
         const token = await getToken();
         const { data } = await axios.get(
-          "http://127.0.0.1:5000/shift/status",
+          "https://shift-tracker-plig.onrender.com/shift/status",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         

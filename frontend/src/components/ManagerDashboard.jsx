@@ -31,12 +31,12 @@ const ManagerDashboard = () => {
     const fetchData = async () => {
       try {
         // Fetch staff data
-        const staffResponse = await axios.get('http://127.0.0.1:5000/shift/getStaff');
+        const staffResponse = await axios.get('https://shift-tracker-plig.onrender.com/shift/getStaff');
         setStaff(staffResponse.data.userShift);
         
         // Fetch perimeter settings if available
         try {
-          const perimeterResponse = await axios.get('http://127.0.0.1:5000/perimeter/get');
+          const perimeterResponse = await axios.get('https://shift-tracker-plig.onrender.com/perimeter/get');
           if (perimeterResponse.data) {
             setPerimeter({
               location: {
@@ -72,7 +72,7 @@ const ManagerDashboard = () => {
     try {
       const token = await getToken();
       const response = await axios.post(
-        'http://127.0.0.1:5000/perimeter/set',
+        'https://shift-tracker-plig.onrender.com/perimeter/set',
         {
           location: {
             latitude: perimeter.location.lat,
