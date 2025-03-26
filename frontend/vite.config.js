@@ -7,7 +7,13 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss()
   ],
+  optimizeDeps: {
+    include: ['axios']
+  },
   build: {
+    commonjsOptions: {
+      transformMixedEsModules: true
+    },
     rollupOptions: {
       external: ['axios']
     }
