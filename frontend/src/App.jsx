@@ -8,7 +8,7 @@ import { TimerProvider } from "./contexts/TimerContext";
 
 function App() {
   return (
-    <Router>
+    <Router >
       <Navbar />
       <TimerProvider>
 
