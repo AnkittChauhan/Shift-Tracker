@@ -12,14 +12,9 @@
   ],
   "routes": [
     {
-      "src": "/assets/.*",
-      "headers": {
-        "Content-Type": "application/javascript"
-      }
-    },
-    {
-      "src": "/.*",
-      "dest": "/index.html"
+      "src": "/*",
+      "dest": "/index.html",
+      "status": 200
     }
   ]
 }
