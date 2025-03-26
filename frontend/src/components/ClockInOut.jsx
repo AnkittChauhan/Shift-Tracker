@@ -23,10 +23,10 @@ const ClockInOut = () => {
   const [notes, setNotes] = useState(localStorage.getItem('clockNotes') || "");
   const { getToken } = useAuth();
   const { isSignedIn, user } = useUser();
-  // const [userLocation, setUserLocation] = useState(null);
-  // const [isWithinPerimeter, setIsWithinPerimeter] = useState(false);
-  // const [locationError, setLocationError] = useState(null);
-  // const [isCheckingLocation, setIsCheckingLocation] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [isWithinPerimeter, setIsWithinPerimeter] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+  const [isCheckingLocation, setIsCheckingLocation] = useState(false);
 
   const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
 
