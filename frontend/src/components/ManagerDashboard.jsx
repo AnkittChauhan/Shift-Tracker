@@ -133,25 +133,25 @@ const ManagerDashboard = () => {
 
   return (
 
-    <div className="bg-gray-50 min-h-screen p-8">
+    <div className="bg-gray-50 min-h-screen p-3 md:p-8">
       <Toaster position="top-center" expand={false} richColors />
       {/* Header Section */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Manager Dashboard</h1>
+          <h1 className="text-lg md:text-3xl font-bold text-gray-800">Manager Dashboard</h1>
           <div className="flex items-center mt-2 text-gray-600">
             <Calendar className="mr-2 h-4 w-4" />
-            <span>{currentDate}</span>
+            <span className='max-md:text-sm'>{currentDate}</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center">
+        <div className="md:flex items-center gap-4 max-md:space-y-2">
+          <div className="bg-blue-600 text-white px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-md flex items-center">
             <Clock className="mr-2 h-5 w-5" />
-            <span className="font-medium">Staff Online: {staff.length}</span>
+            <span className="max-md:text-sm font-medium">Staff Online: {staff.length}</span>
           </div>
           <button
             onClick={() => setShowPerimeterSettings(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center hover:bg-green-700 transition-colors"
+            className="bg-green-600 text-white px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-md flex items-center hover:bg-green-700 transition-colors"
           >
             <MapPin className="mr-2 h-5 w-5" />
             <span>Set Perimeter</span>
@@ -238,7 +238,7 @@ const ManagerDashboard = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-100 text-left text-gray-600 text-sm uppercase tracking-wider">
+                <tr className="bg-gray-100 text-left text-gray-600 text-xs md:text-sm uppercase md:tracking-wider">
                   <th className="px-4 py-3 rounded-tl-lg font-semibold">Employee</th>
                   <th className="px-4 py-3 font-semibold">Clock In</th>
                   <th className="px-4 py-3 font-semibold">Clock Out</th>

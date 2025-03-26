@@ -67,18 +67,18 @@ const Navbar = () => {
   return (
     <nav className="bg-blue-500 p-4">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="flex gap-10 items-end">
-          <Link to="/" className="hover:underline">
+        <div className="flex gap-5 md:gap-10 items-end">
+          <Link to="/" className="hover:underline max-md:text-sm">
             Authentication🔒
           </Link>
-          <Link to="/user" className="hover:underline">
+          <Link to="/user" className="hover:underline max-md:text-sm">
             User👤
           </Link>
          {
            isSignedIn && (
             <div
           onClick={ handleManagerClick }
-          className="cursor-pointer hover:underline">
+          className="cursor-pointer hover:underline max-md:text-sm">
             Manager💼
           </div>
           )
@@ -87,7 +87,7 @@ const Navbar = () => {
 
       {isOpen && (
         <div className="fixed z-50 inset-0 flex items-center justify-center backdrop-blur ">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-6 rounded-lg shadow-lg md:w-96">
             <h2 className="text-xl font-semibold">Admin ? Prove it !</h2>
             <p className="mt-2 text-gray-600">Only admin can go futher</p>
             <p className="mt-2 text-gray-600">Hint ID :- admin@123</p>
