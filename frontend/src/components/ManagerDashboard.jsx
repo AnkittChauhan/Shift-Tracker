@@ -124,7 +124,6 @@ const ManagerDashboard = () => {
   };
 
 
-  // Loader before getting Stafff 
 
 
 
@@ -247,6 +246,9 @@ const ManagerDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
+
+                {/* Loader before getting Stafff */}
+                
                 {
 
                   loading ? (
@@ -284,8 +286,6 @@ const ManagerDashboard = () => {
                     ))
 
                   )
-
-
                 }
               </tbody>
             </table>
