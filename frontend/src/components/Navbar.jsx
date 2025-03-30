@@ -72,7 +72,7 @@ const Navbar = () => {
             Authentication🔒
           </Link>
           <Link to="/user" className="hover:underline max-md:text-sm">
-            User👤
+            Staff👤
           </Link>
          {
            isSignedIn && (
