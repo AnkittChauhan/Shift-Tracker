@@ -27,6 +27,7 @@ const ClockInOut = () => {
   const [isWithinPerimeter, setIsWithinPerimeter] = useState(false);
   const [locationError, setLocationError] = useState(null);
   const [isCheckingLocation, setIsCheckingLocation] = useState(false);
+  const [ isLoading , setIsLoading ] = useState(false);
 
   const imageUrl = user?.imageUrl || "https://thumbs.dreamstime.com/b/male-default-avatar-profile-icon-man-face-silhouette-person-placeholder-vector-illustration-male-default-avatar-profile-icon-man-189495143.jpg";
 
@@ -41,6 +42,8 @@ const ClockInOut = () => {
   };
 
   const handleClockIn = async () => {
+
+    setIsLoading(true);
     try {
       // 1. Get current location
       const position = await new Promise((resolve, reject) => {
@@ -79,6 +82,10 @@ const ClockInOut = () => {
           }
         }
       );
+
+      if( data.status ){
+        setIsLoading(false);
+      }
   
       // Update state through context
       setIfClockedIn(true);
@@ -315,7 +322,7 @@ const checkPerimeter = async (location) => {
             <>
               <button
                 onClick={handleClockIn}
-                disabled={isCheckingLocation || locationError}
+                disabled={isCheckingLocation || locationError || isLoading }
                 className={`my-2 flex items-center justify-center mx-auto text-white font-medium py-2 px-6 rounded-md transition-colors duration-300 ${
                   isCheckingLocation 
                     ? "bg-gray-400" 
