@@ -10,6 +10,7 @@ import StaffLoader from './StaffLoader';
 const ManagerDashboard = () => {
 
   const { getToken } = useAuth();
+  const [ activeCount , useActiveCount ] = useState(0);
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -122,14 +123,12 @@ const ManagerDashboard = () => {
       </>
     ) : null;
   };
+  
 
-
-
-
-
-
-
-
+  // logic to show how many are staff members are Active now !!
+  const checkedIn = staff.filter(emp => emp.clockInTime).length;
+  const checkedOut = staff.filter(emp => emp.clockOutTime).length;
+  const activeStaff = checkedIn - checkedOut;
 
   return (
 
@@ -147,7 +146,7 @@ const ManagerDashboard = () => {
         <div className="md:flex items-center gap-4 max-md:space-y-2">
           <div className="bg-blue-600 text-white px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-md flex items-center">
             <Clock className="mr-2 h-5 w-5" />
-            <span className="max-md:text-sm font-medium">Staff Online: {staff.length}</span>
+            <span className="max-md:text-sm font-medium">Staff Online: {activeStaff}</span>
           </div>
           <button
             onClick={() => setShowPerimeterSettings(true)}
@@ -256,6 +255,7 @@ const ManagerDashboard = () => {
                       <StaffLoader />
                     </tr>
                   ) : (
+                    
                     staff.map((employee) => (
                       <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-4">
