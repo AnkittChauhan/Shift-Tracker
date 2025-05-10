@@ -10,7 +10,6 @@ import StaffLoader from './StaffLoader';
 const ManagerDashboard = () => {
 
   const { getToken } = useAuth();
-  const [ activeCount , useActiveCount ] = useState(0);
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
