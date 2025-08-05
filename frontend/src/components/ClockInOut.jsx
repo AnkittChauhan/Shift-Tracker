@@ -202,43 +202,43 @@ const checkPerimeter = async (location) => {
 
  
   // Check with backend on component mount to verify actual state
-  useEffect(() => {
-    const verifyShiftStatus = async () => {
-      try {
-        const token = await getToken();
-        const { data } = await axios.get(
-          "https://shift-tracker-plig.onrender.com/shift/status",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+  // useEffect(() => {
+  //   const verifyShiftStatus = async () => {
+  //     try {
+  //       const token = await getToken();
+  //       const { data } = await axios.get(
+  //         "https://shift-tracker-plig.onrender.com/shift/status",
+  //         { headers: { Authorization: `Bearer ${token}` } }
+  //       );
         
-        if (data.activeShift) {
-          // Calculate elapsed time
-          const clockInTime = new Date(data.activeShift.clockInTime);
-          const now = new Date();
-          const secondsElapsed = Math.floor((now - clockInTime) / 1000);
+  //       if (data.activeShift) {
+  //         // Calculate elapsed time
+  //         const clockInTime = new Date(data.activeShift.clockInTime);
+  //         const now = new Date();
+  //         const secondsElapsed = Math.floor((now - clockInTime) / 1000);
           
-          setSeconds(secondsElapsed);
-          setIfClockedIn(true);
-          setIsActive(true);
+  //         setSeconds(secondsElapsed);
+  //         setIfClockedIn(true);
+  //         setIsActive(true);
           
-          // Start timer if not already running
-          if (!window.timerInterval) {
-            window.timerInterval = setInterval(() => {
-              setSeconds(prev => {
-                const newSeconds = prev + 1;
-                localStorage.setItem('timerSeconds', newSeconds);
-                return newSeconds;
-              });
-            }, 1000);
-          }
-        }
-      } catch (err) {
-        console.error("Error verifying shift status:", err);
-      }
-    };
+  //         // Start timer if not already running
+  //         if (!window.timerInterval) {
+  //           window.timerInterval = setInterval(() => {
+  //             setSeconds(prev => {
+  //               const newSeconds = prev + 1;
+  //               localStorage.setItem('timerSeconds', newSeconds);
+  //               return newSeconds;
+  //             });
+  //           }, 1000);
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Error verifying shift status:", err);
+  //     }
+  //   };
 
-    if (isSignedIn) verifyShiftStatus();
-  }, [isSignedIn, getToken]);
+  //   if (isSignedIn) verifyShiftStatus();
+  // }, [isSignedIn, getToken]);
 
   const formatTime = (timeInSeconds) => {
     const hours = Math.floor(timeInSeconds / 3600);
