@@ -1,23 +1,16 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { SignedIn, UserButton, useUser } from '@clerk/clerk-react';
 import { Toaster, toast } from 'sonner';
-import { useUser } from "@clerk/clerk-react";
-
-
 
 const Navbar = () => {
-
-
-  // Handling Admin Box pop-up appear 
-
   const [isOpen, setIsOpen] = useState(false);
-  const [adminMail, setAdminMail] = useState(' ');
-  const [adminPass, setAdminPass] = useState(' ');
+  const [adminMail, setAdminMail] = useState('');
+  const [adminPass, setAdminPass] = useState('');
 
   const navigate = useNavigate();
-  const { isSignedIn, user } = useUser();
+  const location = useLocation();
+  const { isSignedIn } = useUser();
 
   useEffect(() => {
     if (location.pathname === "/ManagerDashboard") {
@@ -29,134 +22,145 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const handleAdminClose = () => {
-    setIsOpen(false)
-    navigate('/')
-  }
+    setIsOpen(false);
+    navigate('/');
+  };
 
   const REGadminEmail = import.meta.env.VITE_ADMIN_MAIL;
-  const REGadminPassword = import.meta.env.VITE_ADMIN_PASS
+  const REGadminPassword = import.meta.env.VITE_ADMIN_PASS;
 
   const handleAdminSubmit = () => {
     if (adminMail === REGadminEmail && adminPass === REGadminPassword) {
-      setIsOpen(false)
+      setIsOpen(false);
       localStorage.setItem('isAdminLoggedIn', 'true');
-      toast.success('Welcome Admin', {
-        autoClose: 500,
-      })
+      toast.success('Welcome Admin', { autoClose: 500 });
+    } else {
+      toast.error('Wrong ID/PASS', { autoClose: 500 });
     }
-    else {
-      toast.error('Wrong ID/PASS', {
-        autoClose: 500,
-      })
-    }
-  }
+  };
 
   const handleManagerClick = () => {
-    navigate('/ManagerDashboard')
-
+    navigate('/ManagerDashboard');
     const storedVal = localStorage.getItem('isAdminLoggedIn');
-
     if (storedVal === 'true') {
-      setIsOpen(false)
-    }
-    else {
+      setIsOpen(false);
+    } else {
       setIsOpen(true);
     }
-  }
+  };
+
+  const NavLink = ({ to, children, icon }) => (
+    <Link
+      to={to}
+      className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 font-medium text-sm md:text-base"
+    >
+      {icon}
+      <span>{children}</span>
+    </Link>
+  );
 
   return (
-    <nav className="bg-blue-500 p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="flex gap-5 md:gap-10 items-end">
-          {
+    <>
+      <nav className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex justify-between items-center">
+            {/* Navigation Links */}
+            <div className="flex items-center gap-2 md:gap-4">
+              {isSignedIn ? (
+                <>
+                  <NavLink to="/" icon={<span>🔒</span>}>
+                    Auth
+                  </NavLink>
+                  <NavLink to="/user" icon={<span>👤</span>}>
+                    Staff
+                  </NavLink>
+                  <button
+                    onClick={handleManagerClick}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 font-medium text-sm md:text-base"
+                  >
+                    <span>💼</span>
+                    <span>Manager</span>
+                  </button>
+                </>
+              ) : (
+                <NavLink to="/" icon={<span>🔒</span>}>
+                  Authentication
+                </NavLink>
+              )}
+            </div>
 
-            isSignedIn ? (
-              <>
-                <Link to="/" className="hover:underline max-md:text-sm">
-                  Authentication🔒
-                </Link>
-                <Link to="/user" className="hover:underline max-md:text-sm">
-                  Staff👤
-                </Link>
-                <div
-                  onClick={handleManagerClick}
-                  className="cursor-pointer hover:underline max-md:text-sm">
-                  Manager💼
+            {/* User Profile */}
+            <div className="flex items-center gap-4">
+              <SignedIn>
+                <div className="bg-gray-100 p-1 rounded-full hover:bg-gray-200 transition-colors">
+                  <UserButton afterSignOutUrl="/" />
                 </div>
-              </>
-            ) : (
-              <Link to="/" className="hover:underline max-md:text-sm">
-                Authentication🔒
-              </Link>
-            )
-
-          }
-
-
-
-
-        </div>
-
-        {isOpen && (
-          <div className="fixed z-50 inset-0 flex items-center justify-center backdrop-blur ">
-            <div className="bg-white p-6 rounded-lg shadow-lg md:w-96">
-              <h2 className="text-xl font-semibold">Admin ? Prove it !</h2>
-              <p className="mt-2 text-gray-600">Only admin can go futher</p>
-              <p className="mt-2 text-gray-600">Hint ID :- admin@123</p>
-              <p className="mt-2 text-gray-600">Hint Pass :- 12345</p>
-
-              {/* Input Boxes */}
-              <div className='mt-5'>
-                <input
-                  onChange={(e) => {
-                    setAdminMail(e.target.value)
-                  }}
-                  type="text"
-                  placeholder='admin Mail'
-                  className='text-sm p-2 border-b focus:outline-none'
-                />
-                <input
-                  onChange={(e) => {
-                    setAdminPass(e.target.value)
-                  }}
-                  type="text"
-                  placeholder='admin Pass'
-                  className='text-sm p-2 border-b focus:outline-none'
-                />
-              </div>
-
-              {/* Close Button */}
-              <div className='space-x-2'>
-                <button
-                  onClick={
-                    handleAdminClose
-                  }
-                  className="mt-4 px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={
-                    handleAdminSubmit
-                  }
-                  className="mt-4 px-4 py-1 bg-green-500 hover:bg-green-600 text-white rounded"
-                >
-                  Submit
-                </button>
-                <Toaster position="top-center" expand={false} richColors />
-              </div>
+              </SignedIn>
             </div>
           </div>
-        )}
-
-        <div>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
         </div>
-      </div>
+      </nav>
 
-    </nav>
+      {/* Admin Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all scale-100">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">🛡️</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">Admin Access</h2>
+              <p className="text-gray-500 mt-2">Please verify your credentials</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 mb-6">
+                <p className="font-semibold mb-1">Demo Credentials:</p>
+                <p>ID: admin@123</p>
+                <p>Pass: 12345</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <input
+                    onChange={(e) => setAdminMail(e.target.value)}
+                    type="text"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    placeholder="admin@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <input
+                    onChange={(e) => setAdminPass(e.target.value)}
+                    type="password"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={handleAdminClose}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAdminSubmit}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg shadow-blue-200 transition-all"
+                >
+                  Verify Access
+                </button>
+              </div>
+            </div>
+            <Toaster position="top-center" expand={false} richColors />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

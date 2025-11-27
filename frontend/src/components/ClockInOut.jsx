@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { Toaster, toast } from 'sonner';
-import { MapPin, AlertCircle } from 'lucide-react';
+import { MapPin, AlertCircle, FileText, LogOut, LogIn } from 'lucide-react';
 import { useTimer } from "../contexts/TimerContext";
 
 const ClockInOut = () => {
@@ -248,102 +248,124 @@ const checkPerimeter = async (location) => {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-center h-full w-full">
-        <div className="bg-gray-50 p-8 rounded-lg shadow-md w-full max-w-md">
-          <h1 className="flex my-2 gap-2 items-center justify-center">
-            Status: {
-              isActive ? (
-                <div className="flex items-center justify-center text-green-500 font-medium">
-                  Active
-                </div>
-              ) : (
-                <div className="flex items-center justify-center text-red-500 font-medium">
-                  InActive
-                </div>
-              )
-            }
-          </h1>
-
-          <div className="flex flex-col items-center justify-center p-4">
-            <h1 className="text-2xl font-bold">Timer</h1>
-            <div className="text-2xl font-mono">{formatTime(seconds)}</div>
-          </div>
-
-          <div className="flex items-center justify-center">
-            <img
-              className="h-20 rounded-full"
-              src={imageUrl} alt='/' />
-          </div>
-          <div className="flex items-center justify-center text-lg font-bold">
-            {isSignedIn ? user.fullName : 'User'}
-          </div>
-
-          {/* Location status display */}
-          {!ifClockedIn && (
-            <div className="my-3 p-3 rounded-md bg-blue-50 text-blue-800 flex items-start">
-              <MapPin className="mr-2 h-5 w-5 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Location Check</p>
-                {isCheckingLocation ? (
-                  <p className="text-sm">Checking your location...</p>
-                ) : locationError ? (
-                  <p className="text-sm flex items-center">
-                    <AlertCircle className="mr-1 h-4 w-4" /> {locationError}
-                  </p>
-                ) : (
-                  <p className="text-sm">
-                    {isWithinPerimeter 
-                      ? "You're within the allowed perimeter"
-                      : "Location will be checked when you clock in"}
-                  </p>
-                )}
-              </div>
+    <div className="min-h-[calc(100vh-80px)] w-full flex items-center justify-center bg-gray-50 p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md transform transition-all duration-300 hover:shadow-2xl border border-gray-100">
+        
+        {/* Header / User Info */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative mb-4">
+            <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+              <img
+                className="w-full h-full rounded-full object-cover border-4 border-white"
+                src={imageUrl} 
+                alt={user?.fullName} 
+              />
             </div>
-          )}
+            <div className={`absolute bottom-1 right-1 w-6 h-6 rounded-full border-4 border-white ${isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800">{isSignedIn ? user.fullName : 'Guest User'}</h2>
+          <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
+            <span className={`inline-block w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+            {isActive ? 'Currently Working' : 'Off Duty'}
+          </p>
+        </div>
+
+        {/* Timer Section */}
+        <div className="bg-gray-50 rounded-xl p-6 mb-8 text-center border border-gray-100 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+          <p className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wider">Session Duration</p>
+          <div className="text-5xl font-mono font-bold text-gray-800 tracking-tight">
+            {formatTime(seconds)}
+          </div>
+        </div>
+
+        {/* Location Status */}
+        {!ifClockedIn && (
+          <div className={`mb-6 p-4 rounded-xl border ${
+            locationError ? 'bg-red-50 border-red-100 text-red-700' : 
+            isWithinPerimeter ? 'bg-green-50 border-green-100 text-green-700' : 
+            'bg-blue-50 border-blue-100 text-blue-700'
+          } flex items-start gap-3 transition-all duration-300`}>
+            <div className={`p-2 rounded-full ${
+              locationError ? 'bg-red-100' : 
+              isWithinPerimeter ? 'bg-green-100' : 
+              'bg-blue-100'
+            }`}>
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">Location Status</p>
+              <p className="text-xs mt-1 opacity-90">
+                {isCheckingLocation ? "Verifying your location..." : 
+                 locationError ? locationError : 
+                 isWithinPerimeter ? "You are within the allowed zone" : 
+                 "Location verification required to clock in"}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FileText className="h-5 w-5 text-gray-400" />
+            </div>
+            <textarea
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none text-sm"
+              placeholder="Add notes for this shift (optional)..."
+              rows="2"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
 
           {ifClockedIn ? (
-            <>
-              <button
-                onClick={handleClockOut}
-                disabled={isCheckingLocation}
-                className="bg-red-500 my-2 flex items-center justify-center mx-auto hover:bg-red-600 text-white font-medium py-2 px-6 rounded-md transition-colors duration-300 disabled:bg-red-300"
-              >
-                {isCheckingLocation ? "Checking Location..." : "Clock Out"}
-              </button>
-              <textarea
-                className="w-full p-2 border rounded mb-4"
-                placeholder="Optional notes..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </>
+            <button
+              onClick={handleClockOut}
+              disabled={isCheckingLocation}
+              className="w-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-red-200 transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isCheckingLocation ? (
+                <span className="animate-pulse">Verifying...</span>
+              ) : (
+                <>
+                  <LogOut className="w-5 h-5" />
+                  Clock Out
+                </>
+              )}
+            </button>
           ) : (
-            <>
-              <button
-                onClick={handleClockIn}
-                disabled={isCheckingLocation || locationError || isLoading }
-                className={`my-2 flex items-center justify-center mx-auto text-white font-medium py-2 px-6 rounded-md transition-colors duration-300 ${
-                  isCheckingLocation 
-                    ? "bg-gray-400" 
-                    : locationError 
-                      ? "bg-gray-400" 
-                      : "bg-green-500 hover:bg-green-600"
-                }`}
-              >
-                {isCheckingLocation ? "Checking Location..." : "Clock In"}
-              </button>
-              <textarea
-                className="w-full p-2 border rounded mb-4"
-                placeholder="Optional notes..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </>
+            <button
+              onClick={handleClockIn}
+              disabled={isCheckingLocation || locationError || isLoading}
+              className={`w-full font-bold py-4 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${
+                isCheckingLocation || locationError 
+                  ? "bg-gray-400 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-200"
+              }`}
+            >
+              {isCheckingLocation ? (
+                <span className="animate-pulse">Verifying Location...</span>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5" />
+                  Clock In
+                </>
+              )}
+            </button>
           )}
-          {status && <p className="mt-4 text-gray-700">{status}</p>}
-          <Toaster position="top-center" expand={false} richColors />
         </div>
+
+        {status && (
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-400 bg-gray-50 py-2 px-4 rounded-full inline-block">
+              {status}
+            </p>
+          </div>
+        )}
+        
+        <Toaster position="top-center" expand={false} richColors />
       </div>
     </div>
   );
