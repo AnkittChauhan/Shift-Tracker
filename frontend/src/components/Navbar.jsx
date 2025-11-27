@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { SignedIn, UserButton, useUser } from '@clerk/clerk-react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -156,7 +156,6 @@ const Navbar = () => {
                 </button>
               </div>
             </div>
-            <Toaster position="top-center" expand={false} richColors />
           </div>
         </div>
       )}

@@ -5,13 +5,14 @@ import ClockInOut from "./components/ClockInOut";
 import ManagerDashboard from "./components/ManagerDashboard";
 import AuthPage from "./components/AuthPage";
 import { TimerProvider } from "./contexts/TimerContext";
+import { Toaster } from 'sonner';
 
 function App() {
   return (
     <Router >
       <Navbar />
       <TimerProvider>
-
+        <Toaster position="top-center" expand={false} richColors />
         <div className="container mx-auto p-4">
           <Routes>
             <Route path="/" element={< AuthPage />} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { MapPin, AlertCircle, FileText, LogOut, LogIn } from 'lucide-react';
 import { useTimer } from "../contexts/TimerContext";
 
@@ -38,8 +38,43 @@ const ClockInOut = () => {
 
   // Check user's location against perimeter
   const checkLocation = async () => {
-    // ... (keep your existing checkLocation implementation)
+    setIsCheckingLocation(true);
+    setLocationError(null);
+    
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000
+        });
+      });
+
+      const currentLocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      
+      setUserLocation(currentLocation);
+      
+      const isWithin = await checkPerimeter(currentLocation);
+      setIsWithinPerimeter(isWithin);
+      
+      return isWithin;
+    } catch (error) {
+      console.error("Location check error:", error);
+      setLocationError("Unable to retrieve location");
+      return false;
+    } finally {
+      setIsCheckingLocation(false);
+    }
   };
+
+  // Initial location check on mount
+  useEffect(() => {
+    if (isSignedIn && !ifClockedIn) {
+      checkLocation();
+    }
+  }, [isSignedIn, ifClockedIn]);
 
   const handleClockIn = async () => {
 
@@ -62,6 +97,7 @@ const ClockInOut = () => {
       const isWithin = await checkPerimeter(clockInLocation);
       if (!isWithin) {
         toast.error('You must be within the designated perimeter to clock in');
+        setIsLoading(false);
         return;
       }
   
@@ -338,15 +374,20 @@ const checkPerimeter = async (location) => {
           ) : (
             <button
               onClick={handleClockIn}
-              disabled={isCheckingLocation || locationError || isLoading}
+              disabled={isCheckingLocation || locationError || isLoading || !isWithinPerimeter}
               className={`w-full font-bold py-4 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${
-                isCheckingLocation || locationError 
+                isCheckingLocation || locationError || !isWithinPerimeter
                   ? "bg-gray-400 cursor-not-allowed" 
                   : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-200"
               }`}
             >
               {isCheckingLocation ? (
                 <span className="animate-pulse">Verifying Location...</span>
+              ) : !isWithinPerimeter ? (
+                <>
+                  <AlertCircle className="w-5 h-5" />
+                  Outside Perimeter
+                </>
               ) : (
                 <>
                   <LogIn className="w-5 h-5" />
@@ -365,7 +406,6 @@ const checkPerimeter = async (location) => {
           </div>
         )}
         
-        <Toaster position="top-center" expand={false} richColors />
       </div>
     </div>
   );
